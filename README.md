@@ -19,6 +19,7 @@ python demo.py --video /path/to/clip.avi
 ```
 
 > **Note:** dlib is optional but required for the CNN face detector. If you prefer OpenCV Haar cascades or precomputed detections, you can skip installing it.
+> 本リポジトリにはサンプル動画を含めていないため、手元の動画パスを `--video` で指定してください。
 
 ## Usage
 
@@ -56,7 +57,7 @@ Use `--quiet` to disable per-frame logging when you only need the completion mes
 
 - **dlib CNN**: Requires `data/mmod_human_face_detector.dat` (bundled). Install `dlib` and the detector will be used automatically.
 - **OpenCV Haar**: No external dependencies beyond OpenCV itself. Keep the OpenCV data folder accessible (macOS installs include it).
-- **Precomputed**: Provide a CSV via `--face`. Bounding boxes are automatically expanded to stabilize scores.
+- **Precomputed**: Provide a CSV via `--face`. Bounding boxes are automatically expanded to stabilize scores. `demo_face_detections.txt` は元リポジトリのサンプルを維持しているので、対応する動画を用意すればそのまま利用できます。
 
 ## Environment Tips
 
