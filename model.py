@@ -3,12 +3,15 @@ import torch
 import math
 
 
-def model_static(pretrained=False, **kwargs):
+def model_static(pretrained=False, map_location=None, **kwargs):
     model = ResNet([3, 4, 6, 3], **kwargs)
     if pretrained:
-        print 'loading saved model weights'
+        print('loading saved model weights')
         model_dict = model.state_dict()
-        snapshot = torch.load(pretrained)
+        load_kwargs = {}
+        if map_location is not None:
+            load_kwargs['map_location'] = map_location
+        snapshot = torch.load(pretrained, **load_kwargs)
         snapshot = {k: v for k, v in snapshot.items() if k in model_dict}
         model_dict.update(snapshot)
         model.load_state_dict(model_dict)
