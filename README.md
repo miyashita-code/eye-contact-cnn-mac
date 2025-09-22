@@ -1,64 +1,74 @@
-# eye-contact-cnn
-This repository provides a deep convolutional neural network model trained to detect moments of eye contact in egocentric view. The model was trained on over 4 millions of facial images of > 100 young individuals during natural social interactions, and achives an accuracy comaprable to that of trained clinical human annotators.
+# Eye Contact CLI
 
-![](teaser.gif)
+Terminal-first fork of the original `eye-contact-cnn` demo. The GUI overlay has been removed so the project focuses on lightweight, scriptable inference that prints eye-contact scores straight to stdout.
 
-## Libraries used in our experiment
-- PyTorch 0.4.0
-- opencv 4.0.0
-- numpy 1.16.2
-- PIL 5.3.0
-- pandas 0.23.4
-- dlib 19.13.0 (optional if you want live face detection)
+## Features
+- ResNet-based eye-contact classifier (`model_static`) with pretrained weights in `data/model_weights.pkl`.
+- Flexible face detection workflow: dlib CNN detector when available, or OpenCV Haar cascades as a fallback. Precomputed detections can be supplied via `--face`.
+- Pure CLI experience: per-frame scores stream to the terminal; optional `--quiet` switch suppresses noisy logs.
+- macOS-friendly: automatically uses CUDA, Metal (MPS), or CPU depending on what PyTorch reports.
 
+## Quick Start
 
-## To run
-### with a webcam
-```
-python demo.py
-```
-### on a video file
-```
-python demo.py --video yourvideofile.avi
-```
-### on our sample video
-Try this if you don't want to use dlib's face and instead test with pre-detected faces.
-
-Comment out the first line of demo.py "import dlib" if you didn't install dlib.
-
-```
-python demo.py --video demo_video.avi --face demo_face_detections.txt
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install torch torchvision opencv-python numpy Pillow pandas
+python demo.py --video /path/to/clip.avi
 ```
 
-Demo video has been downloaded from [here](https://youtu.be/5wFyxihwQiI). I used this [face detector](https://github.com/natanielruiz/dockerface) to generate the face detection file.
+> **Note:** dlib is optional but required for the CNN face detector. If you prefer OpenCV Haar cascades or precomputed detections, you can skip installing it.
 
+## Usage
 
-## Flags
-- `--face`: Path to pre-processed face detection file of format [frame#, min_x, min_y, max_x, max_y]. If not specified, dlib's face detector will be used.
-- `-save_vis`: Saves the output as an avi video file.
-- `-save_text`: Saves the output as a text file (Format: [frame#, eye_contact_score]).
-- `-display_off`: Turn off display window.
-- Hit 'q' to quit the program.
+- Live webcam (requires dlib or Haar cascades):
+  ```bash
+  python demo.py
+  ```
+- Process a video file with automatic face detection:
+  ```bash
+  python demo.py --video /path/to/clip.avi
+  ```
+- Process a video file with precomputed face boxes (CSV formatted as `[frame,left,top,right,bottom]`):
+  ```bash
+  python demo.py --video /path/to/clip.avi --face detections.csv
+  ```
 
-
-## Notes
-- Output eye contact score ranges [0, 1] and score above 0.9 is considered confident.
-- To further improve the result, smoothing the output is encouraged as it can help removing outliers caused by eye blinks, motion blur etc.
-
-
-## Citation
-Please cite this paper in any publications that make use of this software.
+The script prints a line per processed frame such as:
 
 ```
-@article{chong2020,
- title={Detection of eye contact with deep neural networks is as accurate as human experts},
- url={osf.io/5a6m7},
- DOI={10.31219/osf.io/5a6m7},
- publisher={OSF Preprints},
- author={Chong, Eunji and Clark-Whitney, Elysha and Southerland, Audrey and Stubbs, Elizabeth and Miller, Chanel and Ajodan, Eliana L and Silverman, Melanie R and Lord, Catherine and Rozga, Agata and Jones, Rebecca M and et al.},
- year={2020}
-}
+[path/to/clip.avi] frame 128: scores=0.912, 0.337
 ```
 
-Link to the paper:
-[here](https://nature-research-under-consideration.nature.com/users/37265-nature-communications/posts/60730-detection-of-eye-contact-with-deep-neural-networks-is-as-accurate-as-human-experts)
+Use `--quiet` to disable per-frame logging when you only need the completion message.
+
+### CLI Flags
+
+- `--video`: Input video path. Default is `None`, which opens the first webcam.
+- `--face`: CSV with precomputed face detections.
+- `--model_weight`: Path to the model checkpoint (default `data/model_weights.pkl`).
+- `--jitter`: Integer specifying how many additional jittered crops to average per face.
+- `--max_frames`: Limit how many frames are processed (useful for smoke tests).
+- `--quiet`: Suppress per-frame logs.
+
+### Face Detection Notes
+
+- **dlib CNN**: Requires `data/mmod_human_face_detector.dat` (bundled). Install `dlib` and the detector will be used automatically.
+- **OpenCV Haar**: No external dependencies beyond OpenCV itself. Keep the OpenCV data folder accessible (macOS installs include it).
+- **Precomputed**: Provide a CSV via `--face`. Bounding boxes are automatically expanded to stabilize scores.
+
+## Environment Tips
+
+- Keep the virtual environment directory out of Git history by adding `.venv/` to `.gitignore` if you plan to commit.
+- To format the codebase, install Black (`python -m pip install black`) and run `python -m black demo.py model.py`.
+- The pretrained weights are ~90 MB. Budget ~400 MB of RAM for CPU inference runs on macOS.
+
+## Forking / Sharing
+
+1. Create a new GitHub repository or fork under your account.
+2. Add it as a remote: `git remote add myfork git@github.com:<you>/eye-contact-cli.git`
+3. Push your branch: `git push myfork HEAD:main`
+4. Document any dependency or environment differences in your fork’s README and PR descriptions as needed.
+
+Please cite the original authors if you use this project in research or production work.
